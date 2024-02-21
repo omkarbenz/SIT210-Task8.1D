@@ -1,0 +1,62 @@
+import RPi.GPIO as GPIO
+import time
+from rpi_lcd import LCD
+
+lcd = LCD()
+GPIO.setmode(GPIO.BOARD) ////GPIO Mode which is set to board
+ 
+
+GPIO_TRIGGER = 8 //setting GPIO Pins
+GPIO_ECHO = 10
+
+
+SET_DISTANCE = 25 //Setting maximum distance 
+
+//initialising LCD 
+
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT) //set GPIO direction (IN / OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
+
+
+
+
+def distance():
+    GPIO.output(GPIO_TRIGGER, True) //  set Trigger pin to HIGH when it will triggers a signal
+ 
+   
+    time.sleep(0.00001)  //  set Trigger after 0.01ms to LOW that it will not trigger the signal again
+    GPIO.output(GPIO_TRIGGER, False)
+ 
+    StartTime = time.time() //initialising two variables for time diffrence
+    StopTime = time.time()
+ 
+    
+    while GPIO.input(GPIO_ECHO) == 0: //store StartTime
+        StartTime = time.time()
+ 
+    
+    while GPIO.input(GPIO_ECHO) == 1: // store time of arrival
+        StopTime = time.time()
+ 
+    TimeElapsed = StopTime - StartTime ////time difference between start and arrival
+
+   // multiply with the sonic speed (34300 cm/s)
+    //and divide by 2, because there and back
+
+    distance = (TimeElapsed * 34300) / 2
+    x= int(distance)
+    return x
+
+try:
+	while True:
+		dist = distance()
+		msg = str(dist) +" cm"
+		
+		print("Measured D)istance = %.1f cm" % dist)
+		lcd.text("distance:",1)
+		lcd.text(msg,2)
+		time.sleep(0.01)
+except KeyboardInterrupt:
+    print("\nProgram is stopped")
+    
+GPIO.cleanup()
